@@ -5,7 +5,7 @@ public class ReviewController {
     private final ReviewRepository reviewRepository;
     private final ReviewApprovalGenAISystem approvalService; 
 
-    ReviewController(ReviewRepository repository) {
+    public ReviewController(ReviewRepository repository) {
         this.reviewRepository = repository;
     }
 
@@ -15,24 +15,28 @@ public class ReviewController {
 
         // 1. Persists the review in DynamoDB with status=PENDING
         Review pendingReview = request.toModel(productId);
-        var pendingReview = reviewRepository.save(pendingReview);
+        reviewRepository.save(pendingReview);
 
         // 2. Uses a LLM to approve or reject the review
         try {
             ApprovalResponse approval = approvalService.approve(pendingReview);
-            if (approval.wasApproved()) {
-                pendingReview.setStatus(ReviewStatus.APPROVED);
-                reviewRepository.save(pendingReview);
-            } else {
+            if (approval.wasRejected()) {
                 throw new ReviewNotApprovedException("Review was rejected by our Advanced GenAI Reviewer System: " + approval.getMessage());
             }
-        } catch(Exception e) {
-            // 3. In case of errors, deletes the pending review
-            reviewRepository.delete(pendingReview);
-        } finally {
-            // 4. Returns the review to frontend
+
+            // 3. If approved, updates the review in the database
+            pendingReview.markAsApproved();
+            reviewRepository.save(pendingReview);
+
             return new NewReviewResponse(pendingReview.getId(), pendingReview.getStatus());
+            
+        } catch(Exception e) {
+            // 4. In case of errors, deletes the pending review
+            reviewRepository.delete(pendingReview);
         }
+        
+        // 5. Sorry, your review was rejected
+        return new NewReviewResponse(pendingReview.getId(), ReviewStatus.REJECTED); 
     }
 
 }
@@ -42,15 +46,17 @@ public class ReviewController {
  */
 
 record NewReviewRequest(
-    UUID userId,
-    String reviewText
+    @NotNull UUID userId,
+    @Min(1) @Max(5) double rating;
+    @NotBlank @Size(max=1024) String comment
 ) {
 
     public Review toModel(UUID productId) {
         return new Review(
             productId, 
             this.userId, 
-            this.reviewText,
+            this.rating,
+            this.comment,
             ReviewStatus.PENDING
         );
     }
