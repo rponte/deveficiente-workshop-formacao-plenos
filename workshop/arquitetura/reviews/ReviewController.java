@@ -1,12 +1,14 @@
 package workshop.arquitetura.reviews;
 
+@RestController
 public class ReviewController {
 
     private final ReviewRepository reviewRepository;
     private final ReviewApprovalGenAISystem approvalService; 
 
-    public ReviewController(ReviewRepository repository) {
+    public ReviewController(ReviewRepository repository, ReviewApprovalGenAISystem approvalService) {
         this.reviewRepository = repository;
+        this.approvalService = approvalService;
     }
 
     @PostMapping("/api/products/{productId}/reviews")
