@@ -1,0 +1,147 @@
+package com.deveficiente.pix;
+
+import jakarta.persistence.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.UUID;
+
+@Entity
+@Table(uniqueConstraints = {
+    @UniqueConstraint(name = "uk_chave_pix", columnNames = "chave")
+})
+public class ChavePix {
+
+    @Id
+    @GeneratedValue
+    private UUID id;
+
+    @NotNull
+    @Column(nullable = false)
+    private UUID clienteId;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoDeChave tipo;
+
+    @NotBlank
+    @Column(nullable = false, unique = true)
+    private String chave;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoDeConta tipoDeConta;
+
+    @Valid
+    @Embedded
+    private ContaAssociada conta;
+
+    @Column(nullable = false)
+    private LocalDateTime criadaEm = LocalDateTime.now();
+
+    // Construtor padrão para JPA
+    @Deprecated
+    public ChavePix() {}
+
+    // Construtor principal
+    public ChavePix(@NotNull UUID clienteId,
+                    @NotNull TipoDeChave tipo,
+                    @NotBlank String chave,
+                    @NotNull TipoDeConta tipoDeConta) {
+        this.clienteId = clienteId;
+        this.tipo = tipo;
+        this.chave = chave;
+        this.tipoDeConta = tipoDeConta;
+    }
+
+    // Getters
+    public UUID getId() {
+        return id;
+    }
+    public UUID getClienteId() {
+        return clienteId;
+    }
+    public TipoDeChave getTipo() {
+        return tipo;
+    }
+    public String getChave() {
+        return chave;
+    }
+    public TipoDeConta getTipoDeConta() {
+        return tipoDeConta;
+    }
+    public ContaAssociada getConta() {
+        return conta;
+    }
+    public LocalDateTime getCriadaEm() {
+        return criadaEm;
+    }
+
+    // Regras de negócio
+
+    public void associaConta(ContaAssociada conta) {
+        if (conta == null)
+            throw new ContaAssociadaInvalidaException("Conta associada a chave Pix não pode ser nula.");
+        this.conta = conta;
+    }
+
+    public boolean isAleatoria() {
+        return this.tipo == TipoDeChave.ALEATORIA;
+    }
+
+    public boolean atualizaChave(String novaChave) {
+        if (isAleatoria()) {
+            this.chave = novaChave;
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return "ChavePix{" +
+                "clienteId=" + clienteId +
+                ", tipo=" + tipo +
+                ", chave='" + chave + '\'' +
+                ", tipoDeConta=" + tipoDeConta +
+                ", conta=" + conta +
+                ", id=" + id +
+                ", criadaEm=" + criadaEm +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ChavePix chavePix = (ChavePix) o;
+        return Objects.equals(id, chavePix.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+}
+
+enum TipoDeChave {
+    CPF,
+    CELULAR,
+    EMAIL,
+    ALEATORIA
+
+    boolean valida(String chave) {
+        // lógica de validação de acordo com a chave
+    }
+}
+
+enum TipoDeConta {
+    CONTA_CORRENTE,
+    CONTA_POUPANCA
+}
