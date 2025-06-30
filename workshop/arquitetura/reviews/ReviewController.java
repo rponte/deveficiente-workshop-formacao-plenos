@@ -11,7 +11,7 @@ public class ReviewController {
 
     @PostMapping("/api/products/{productId}/reviews")
     public ReviewResponse newReview(@PathVariable UUID productId,
-                            @Valid @RequestBody NewReviewRequest request) {
+                                    @Valid @RequestBody NewReviewRequest request) {
 
         // 1. Persists the review in DynamoDB with status=PENDING
         Review pendingReview = request.toModel(productId);
