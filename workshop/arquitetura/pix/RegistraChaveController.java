@@ -16,7 +16,7 @@ public class RegistraChaveController {
     }
 
     @PostMapping("/api/pix/keys")
-    public ResponseEntity<?> registra(@RequestBody RegistraChavePixRequest request) {
+    public ResponseEntity<?> registra(@Valid @RequestBody RegistraChavePixRequest request) {
 
         ChavePix novaChave = request.toModel();
         ChavePix chaveCriada = service.registra(novaChave);
