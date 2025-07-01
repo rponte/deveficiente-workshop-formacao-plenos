@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
+import java.net.URI;
 
 @RestController
 public class CreateThumbnailController {
@@ -20,20 +22,27 @@ public class CreateThumbnailController {
     @Autowired
     private Watermark watermark;
 
-    @PostMapping("/api/users/{id}/thumbnails/create")
-    public ResponseEntity<?> createThumbnail(@PathVariable UUID id, @Valid @RequestBody ProfilePhotoRequest photo) throws IOException {
+    @PostMapping("/api/users/{userId}/thumbnails/create")
+    public ResponseEntity<?> createThumbnail(@PathVariable UUID userId, 
+                                             @Valid @RequestBody ProfilePhotoRequest request) throws IOException {
 
-        BufferedImage originalImage = photo.toImage();
+        UUID imageId = UUID.randomUUID();
+        File outputFile = new File("/tmp/thumbnails", imageId + ".png");
+
+        BufferedImage originalImage = request.toImage();
         BufferedImage thumbnail = Thumbnails.of(originalImage)
                                             .size(200, 200)
                                             .outputFormat("png")
                                             .watermark(Positions.BOTTOM_RIGHT, watermark.getWatermarkImage(), 0.5f)
-                                            .asBufferedImage();
+                                            .toFile(outputFile); // escreve thumbnail em disco
 
-        // TODO: escreve em disco ??
-
-        ProfilePhotoResponse response = ProfilePhotoResponse.of(photo.getFileName(), thumbnail);
-        return ResponseEntity.ok(response); // TODO: redirect para "/api/users/{id}/thumbnails/{imageId}
+        String location = "/api/users/{userId}/thumbnails/{imageId}"
+                                .replace("{userId}", userId.toString())
+                                .replace("{imageId}", imageId.toString());
+                                        
+        return ResponseEntity
+                    .created(URI.create(location)) // http 201
+                    .build();
     }
 
 }
