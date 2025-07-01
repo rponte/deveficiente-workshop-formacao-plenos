@@ -1,4 +1,4 @@
-package com.deveficiente.pix.registra;
+package workshop.arquitetura.pix;
 
 import com.deveficiente.pix.registra.service.NovaChavePixService;
 import org.springframework.http.*;

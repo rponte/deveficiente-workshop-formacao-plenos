@@ -1,4 +1,4 @@
-package com.deveficiente.pix;
+package workshop.arquitetura.pix;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

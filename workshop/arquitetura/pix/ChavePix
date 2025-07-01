@@ -1,4 +1,4 @@
-package com.deveficiente.pix;
+package workshop.arquitetura.pix;
 
 import jakarta.persistence.*;
 import jakarta.validation.Valid;

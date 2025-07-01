@@ -1,4 +1,4 @@
-package com.deveficiente.pix.registra;
+package workshop.arquitetura.pix;
 
 import com.deveficiente.integration.bcb.BancoCentralClient;
 import com.deveficiente.integration.bcb.*;
