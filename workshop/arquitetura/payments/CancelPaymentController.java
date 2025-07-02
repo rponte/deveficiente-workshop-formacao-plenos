@@ -9,6 +9,7 @@ public class CancelPaymentController {
 
     private final WebClient webClient = WebClient.create("https://fake-gateway.com/api");
 
+    @Transactional
     @DeleteMapping("/{paymentId}")
     public ResponseEntity<String> cancelPayment(@PathVariable Long paymentId) {
         
@@ -19,7 +20,7 @@ public class CancelPaymentController {
 
         Payment payment = optional.get();
         if (payment.getStatus() == PaymentStatus.CANCELADO) {
-            return ResponseEntity.badRequest().body("Payment is already canceled.");
+            return ResponseEntity.badRequest().body("Pagamento já foi cancelado anteriormente.");
         }
 
         // 1. Atualiza localmente
